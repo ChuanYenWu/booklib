@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}新增作者 - 書庫系統{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">新增作者</h1>
+
+    <form method="POST">
+        <div class="mb-3">
+            <label for="name" class="form-label">作者名稱</label>
+            <input type="text" class="form-control" id="name" name="name" required placeholder="請輸入作者名稱">
+        </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">作者簡介</label>
+            <textarea class="form-control" id="description" name="description" rows="3" placeholder="請輸入作者簡介（選填）"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="url" class="form-label">相關連結</label>
+            <input type="url" class="form-control" id="url" name="url" placeholder="請輸入相關連結（選填）">
+        </div>
+
+        <div class="mb-3">
+            <label for="url_description" class="form-label">連結說明</label>
+            <input type="text" class="form-control" id="url_description" name="url_description" placeholder="請輸入連結說明（選填）">
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <a href="{{ url_for('author.list_authors') }}" class="btn btn-secondary">返回</a>
+            <button type="submit" class="btn btn-primary">新增</button>
+        </div>
+    </form>
+</div>
+{% endblock %} 

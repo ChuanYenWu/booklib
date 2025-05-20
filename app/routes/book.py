@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from app.models.book import Book
-from app import db
+from .. import db
+from ..models import Book
 from datetime import datetime
 
 bp = Blueprint('book', __name__)
@@ -8,7 +8,7 @@ bp = Blueprint('book', __name__)
 @bp.route('/')
 def index():
     books = Book.query.order_by(Book.created_at.desc()).all()
-    return render_template('index.html', books=books)
+    return render_template('book/index.html', books=books)
 
 @bp.route('/book/add', methods=['GET', 'POST'])
 def add_book():

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}書籍列表 - 書庫系統{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>書籍列表</h1>
+        <a href="{{ url_for('book.add_book') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> 新增書籍
+        </a>
+    </div>
+
+    {% if books %}
+    <div class="row">
+        {% for book in books %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ book.title }}</h5>
+                    {% if book.authors %}
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        {% for author in book.authors %}
+                        <a href="{{ url_for('main.author_detail', id=author.id) }}" class="text-muted">{{ author.name }}</a>
+                        {%- if not loop.last %}, {% endif -%}
+                        {% endfor %}
+                    </h6>
+                    {% endif %}
+                    
+                    <p class="card-text">
+                        <span class="badge bg-{{ 'success' if book.reading_status == 2 else 'warning' if book.reading_status == 1 else 'secondary' }}">
+                            {{ '已讀' if book.reading_status == 2 else '閱讀中' if book.reading_status == 1 else '未讀' }}
+                        </span>
+                        {% if book.rating %}
+                        <span class="ms-2">
+                            {% for i in range(book.rating) %}
+                            <i class="bi bi-star-fill text-warning"></i>
+                            {% endfor %}
+                        </span>
+                        {% endif %}
+                    </p>
+                    
+                    {% if book.categories %}
+                    <p class="card-text">
+                        {% for category in book.categories %}
+                        <a href="{{ url_for('main.category_detail', id=category.id) }}" class="badge bg-info text-decoration-none">{{ category.name }}</a>
+                        {% endfor %}
+                    </p>
+                    {% endif %}
+                    
+                    {% if book.tags %}
+                    <p class="card-text">
+                        {% for tag in book.tags %}
+                        <a href="{{ url_for('main.tag_detail', id=tag.id) }}" class="badge bg-secondary text-decoration-none">{{ tag.name }}</a>
+                        {% endfor %}
+                    </p>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('book.book_detail', id=book.id) }}" class="btn btn-outline-primary btn-sm">查看詳情</a>
+                </div>
+                {% if book.updated_at %}
+                <div class="card-footer text-muted">
+                    更新於: {{ book.updated_at.strftime('%Y-%m-%d') }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        目前還沒有任何書籍記錄。<a href="{{ url_for('book.add_book') }}">新增一本書</a>吧！
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+{% endblock %} 

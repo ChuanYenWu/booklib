@@ -1,11 +1,9 @@
-from flask import render_template, redirect, url_for, flash, request, jsonify
-from . import main
-from ..models import db
-from ..models.book import Book
-from ..models.author import Author
-from ..models.category import Category
-from ..models.tag import Tag
-from ..models.url import URL
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+from .. import db
+from ..models import Book, Author, Category, Tag, URL
+
+# 創建藍圖
+main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
@@ -133,20 +131,19 @@ def add_tag():
     return render_template('tag/add.html')
 
 @main.route('/book/<int:id>/add_url', methods=['POST'])
-def add_book_url():
-    book_id = request.form.get('book_id')
+def add_book_url(id):
     url = request.form.get('url')
     description = request.form.get('description', '')
     
     if not url:
         return jsonify({'error': '網址不能為空'}), 400
         
-    book = Book.query.get_or_404(book_id)
+    book = Book.query.get_or_404(id)
     new_url = URL(
         url=url,
         description=description,
         type='book',
-        book_id=book_id
+        book=book
     )
     
     db.session.add(new_url)
@@ -155,20 +152,19 @@ def add_book_url():
     return jsonify({'message': '網址已成功添加'})
 
 @main.route('/author/<int:id>/add_url', methods=['POST'])
-def add_author_url():
-    author_id = request.form.get('author_id')
+def add_author_url(id):
     url = request.form.get('url')
     description = request.form.get('description', '')
     
     if not url:
         return jsonify({'error': '網址不能為空'}), 400
         
-    author = Author.query.get_or_404(author_id)
+    author = Author.query.get_or_404(id)
     new_url = URL(
         url=url,
         description=description,
         type='author',
-        author_id=author_id
+        author=author
     )
     
     db.session.add(new_url)
@@ -177,7 +173,7 @@ def add_author_url():
     return jsonify({'message': '網址已成功添加'})
 
 @main.route('/url/<int:id>/delete', methods=['POST'])
-def delete_url():
+def delete_url(id):
     url = URL.query.get_or_404(id)
     db.session.delete(url)
     db.session.commit()

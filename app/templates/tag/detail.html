@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tag.name }} - 書庫系統{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="mb-3">
+        <a href="{{ url_for('tag.list_tags') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> 返回標籤列表
+        </a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="card-title mb-0">
+                    <span class="badge bg-secondary fs-2">{{ tag.name }}</span>
+                </h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- 相關書籍列表 -->
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title h4">相關書籍</h2>
+            {% if tag.books.count() > 0 %}
+            <div class="row">
+                {% for book in tag.books %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{{ url_for('book.book_detail', id=book.id) }}" class="text-decoration-none">
+                                    {{ book.title }}
+                                </a>
+                            </h5>
+                            {% if book.authors %}
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                {% for author in book.authors %}
+                                <a href="{{ url_for('main.author_detail', id=author.id) }}" class="text-muted">{{ author.name }}</a>
+                                {%- if not loop.last %}, {% endif -%}
+                                {% endfor %}
+                            </h6>
+                            {% endif %}
+                            <p class="card-text">
+                                <span class="badge bg-{{ 'success' if book.reading_status == 2 else 'warning' if book.reading_status == 1 else 'secondary' }}">
+                                    {{ '已讀' if book.reading_status == 2 else '閱讀中' if book.reading_status == 1 else '未讀' }}
+                                </span>
+                                {% if book.rating %}
+                                <span class="ms-2">
+                                    {% for i in range(book.rating) %}
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                    {% endfor %}
+                                </span>
+                                {% endif %}
+                            </p>
+                            {% if book.categories %}
+                            <p class="card-text">
+                                {% for category in book.categories %}
+                                <a href="{{ url_for('main.category_detail', id=category.id) }}" class="badge bg-info text-decoration-none">{{ category.name }}</a>
+                                {% endfor %}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                此標籤目前還沒有任何書籍記錄。
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+{% endblock %} 

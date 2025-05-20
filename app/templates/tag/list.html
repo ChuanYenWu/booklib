@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}標籤列表 - 書庫系統{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>標籤列表</h1>
+        <a href="{{ url_for('tag.add_tag') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> 新增標籤
+        </a>
+    </div>
+
+    {% if tags %}
+    <div class="row">
+        {% for tag in tags %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <span class="badge bg-secondary fs-5">{{ tag.name }}</span>
+                    </h5>
+                    
+                    {% if tag.books %}
+                    <p class="card-text">
+                        相關書籍：{{ tag.books.count() }} 本
+                    </p>
+                    <div class="small text-muted mb-3">
+                        相關書籍：
+                        <ul class="list-unstyled">
+                            {% for book in tag.books.limit(3) %}
+                            <li>
+                                <a href="{{ url_for('book.book_detail', id=book.id) }}" class="text-decoration-none">
+                                    {{ book.title }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% else %}
+                    <p class="card-text text-muted">
+                        尚無相關書籍
+                    </p>
+                    {% endif %}
+
+                    <a href="{{ url_for('tag.tag_detail', id=tag.id) }}" class="btn btn-outline-primary btn-sm">查看詳情</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        目前還沒有任何標籤記錄。
+        <a href="{{ url_for('tag.add_tag') }}" class="alert-link">新增一個標籤</a>吧！
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+{% endblock %} 

@@ -57,12 +57,14 @@ def create_test_data():
     url1 = URL(
         url='https://zh.wikipedia.org/wiki/村上春樹',
         description='村上春樹維基百科',
-        type='author'
+        type='author',
+        author=author1  # 設置作者關聯
     )
     url2 = URL(
         url='https://book.douban.com/subject/1046265/',
         description='挪威的森林豆瓣頁面',
-        type='book'
+        type='book',
+        book=book1  # 設置書籍關聯
     )
     
     # 添加到資料庫

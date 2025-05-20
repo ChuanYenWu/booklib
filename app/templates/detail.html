@@ -10,6 +10,9 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="card-title mb-0">{{ book.title }}</h2>
                     <div>
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addUrlModal">
+                            <i class="bi bi-plus-circle"></i> 新增相關網站
+                        </button>
                         <a href="{{ url_for('book.edit_book', id=book.id) }}" class="btn btn-primary">
                             <i class="bi bi-pencil"></i> 編輯
                         </a>
@@ -22,8 +25,33 @@
                 <table class="table">
                     <tr>
                         <th style="width: 150px;">作者</th>
-                        <td>{{ book.author }}</td>
+                        <td>
+                            {% if book.authors %}
+                            {% for author in book.authors %}
+                            <a href="{{ url_for('main.author_detail', id=author.id) }}" class="text-decoration-none">{{ author.name }}</a>
+                            {%- if not loop.last %}, {% endif -%}
+                            {% endfor %}
+                            {% else %}
+                            未知作者
+                            {% endif %}
+                        </td>
                     </tr>
+                    {% if book.site_urls %}
+                    <tr>
+                        <th>相關網站</th>
+                        <td>
+                            <ul class="list-unstyled mb-0">
+                                {% for url in book.site_urls %}
+                                <li>
+                                    <a href="{{ url.url }}" target="_blank" class="text-decoration-none">
+                                        {{ url.description or url.url }}
+                                    </a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                    {% endif %}
                     {% if book.isbn %}
                     <tr>
                         <th>ISBN</th>
@@ -33,8 +61,8 @@
                     <tr>
                         <th>閱讀狀態</th>
                         <td>
-                            <span class="badge bg-{{ 'success' if book.status == '已讀' else 'warning' if book.status == '閱讀中' else 'secondary' }}">
-                                {{ book.status }}
+                            <span class="badge bg-{{ 'success' if book.reading_status == 2 else 'warning' if book.reading_status == 1 else 'secondary' }}">
+                                {{ '已讀' if book.reading_status == 2 else '閱讀中' if book.reading_status == 1 else '未讀' }}
                             </span>
                         </td>
                     </tr>
@@ -60,20 +88,30 @@
                         </td>
                     </tr>
                     {% endif %}
-                    {% if book.tags %}
+                    {% if book.categories %}
                     <tr>
-                        <th>標籤</th>
+                        <th>分類</th>
                         <td>
-                            {% for tag in book.tags.split(',') %}
-                            <span class="badge bg-info">{{ tag.strip() }}</span>
+                            {% for category in book.categories %}
+                            <a href="{{ url_for('main.category_detail', id=category.id) }}" class="badge bg-info text-decoration-none">{{ category.name }}</a>
                             {% endfor %}
                         </td>
                     </tr>
                     {% endif %}
-                    {% if book.notes %}
+                    {% if book.tags %}
                     <tr>
-                        <th>心得筆記</th>
-                        <td style="white-space: pre-wrap;">{{ book.notes }}</td>
+                        <th>標籤</th>
+                        <td>
+                            {% for tag in book.tags %}
+                            <a href="{{ url_for('main.tag_detail', id=tag.id) }}" class="badge bg-secondary text-decoration-none">{{ tag.name }}</a>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% if book.description %}
+                    <tr>
+                        <th>簡介</th>
+                        <td style="white-space: pre-wrap;">{{ book.description }}</td>
                     </tr>
                     {% endif %}
                     <tr>
@@ -92,6 +130,34 @@
                     </a>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- 新增網站 Modal -->
+<div class="modal fade" id="addUrlModal" tabindex="-1" aria-labelledby="addUrlModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUrlModalLabel">新增相關網站</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('main.add_book_url', id=book.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="url" class="form-label">網址</label>
+                        <input type="url" class="form-control" id="url" name="url" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">描述（選填）</label>
+                        <input type="text" class="form-control" id="description" name="description">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">新增</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -116,4 +182,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
 {% endblock %} 
