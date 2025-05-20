@@ -20,6 +20,11 @@ class Book(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # 關聯關係
+    #authors = db.relationship('Author', secondary='book_author', lazy='dynamic')
+    #categories = db.relationship('Category', secondary='book_category', lazy='dynamic')
+    #tags = db.relationship('Tag', secondary='book_tag', lazy='dynamic')
+    
     # 相關網址（一對多關係）
     urls = db.relationship('URL', backref='book', lazy='dynamic',
                          foreign_keys='URL.book_id',

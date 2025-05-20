@@ -2,7 +2,8 @@ import os
 
 class Config:
     # 資料庫設定
-    SQLALCHEMY_DATABASE_URI = 'sqlite:////' + os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance', 'booklib.db')
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'instance', 'booklib.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # 安全設定
