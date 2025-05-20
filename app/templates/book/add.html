@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}新增書籍 - 書庫系統{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="mb-3">
+        <a href="{{ url_for('book.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> 返回書籍列表
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h2 class="mb-4">新增書籍</h2>
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="title" class="form-label">書名 *</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="authors" class="form-label">作者（多個作者請用逗號分隔） *</label>
+                    <input type="text" class="form-control" id="authors" name="authors" required 
+                           placeholder="例如：村上春樹, 賴明珠">
+                    <div class="form-text">如果作者不存在，系統會自動新增</div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="categories" class="form-label">題材（多個題材請用逗號分隔）</label>
+                    <input type="text" class="form-control" id="categories" name="categories" 
+                           placeholder="例如：小說,奇幻,科幻"
+                           {% if categories %}
+                           value="{{ categories|map(attribute='name')|join(',') }}"
+                           {% endif %}>
+                    <div class="form-text">如果題材不存在，系統會自動新增</div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label">簡介</label>
+                    <textarea class="form-control" id="description" name="description" rows="5"></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="reading_status" class="form-label">閱讀狀態</label>
+                    <select class="form-select" id="reading_status" name="reading_status">
+                        <option value="0">未讀</option>
+                        <option value="1">閱讀中</option>
+                        <option value="2">已讀</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="rating" class="form-label">評分</label>
+                    <select class="form-select" id="rating" name="rating">
+                        <option value="">未評分</option>
+                        <option value="1">1星</option>
+                        <option value="2">2星</option>
+                        <option value="3">3星</option>
+                        <option value="4">4星</option>
+                        <option value="5">5星</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="tags" class="form-label">標籤（多個標籤請用逗號分隔）</label>
+                    <input type="text" class="form-control" id="tags" name="tags" 
+                           placeholder="例如：推理,懸疑,心理"
+                           {% if tags %}
+                           value="{{ tags|map(attribute='name')|join(',') }}"
+                           {% endif %}>
+                    <div class="form-text">如果標籤不存在，系統會自動新增</div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="url" class="form-label">相關網站</label>
+                    <input type="url" class="form-control" id="url" name="url" placeholder="http://...">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="url_description" class="form-label">網站描述</label>
+                    <input type="text" class="form-control" id="url_description" name="url_description" placeholder="例如：作者部落格、購書連結">
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('book.index') }}" class="btn btn-secondary">取消</a>
+                    <button type="submit" class="btn btn-primary">新增書籍</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+{% endblock %} 

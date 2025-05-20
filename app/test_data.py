@@ -13,9 +13,9 @@ def create_test_data():
     
     # 創建分類
     fiction = Category(name='小說')
-    scifi = Category(name='科幻', parent=fiction)
-    mystery = Category(name='推理', parent=fiction)
-    literature = Category(name='文學', parent=fiction)
+    scifi = Category(name='科幻')
+    mystery = Category(name='推理')
+    literature = Category(name='文學')
     
     # 創建標籤
     tag1 = Tag(name='暢銷書')
@@ -30,7 +30,7 @@ def create_test_data():
         rating=5
     )
     book1.authors.append(author1)
-    book1.categories.append(literature)
+    book1.categories.extend([fiction, literature])
     book1.tags.extend([tag1, tag3])
     
     book2 = Book(
@@ -40,7 +40,7 @@ def create_test_data():
         rating=4
     )
     book2.authors.append(author2)
-    book2.categories.append(mystery)
+    book2.categories.extend([fiction, mystery])
     book2.tags.append(tag1)
     
     book3 = Book(
@@ -50,7 +50,7 @@ def create_test_data():
         rating=5
     )
     book3.authors.append(author3)
-    book3.categories.append(scifi)
+    book3.categories.extend([fiction, scifi])
     book3.tags.extend([tag1, tag2])
     
     # 創建相關網址

@@ -18,20 +18,6 @@
             <div class="card h-100">
                 <div class="card-body">
                     <h5 class="card-title">{{ category.name }}</h5>
-                    
-                    {% if category.subcategories %}
-                    <div class="mb-3">
-                        <small class="text-muted">子分類：</small>
-                        <div class="mt-1">
-                            {% for subcategory in category.subcategories %}
-                            <a href="{{ url_for('category.category_detail', id=subcategory.id) }}" 
-                               class="badge bg-info text-decoration-none me-1">
-                                {{ subcategory.name }}
-                            </a>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
 
                     {% if category.books %}
                     <p class="card-text">

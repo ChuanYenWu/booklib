@@ -19,8 +19,7 @@ def author_detail(id):
 def add_author():
     if request.method == 'POST':
         author = Author(
-            name=request.form['name'],
-            description=request.form.get('description')
+            name=request.form['name']
         )
         db.session.add(author)
         

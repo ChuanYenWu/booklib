@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}編輯 {{ book.title }} - 書庫系統{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="mb-3">
+        <a href="{{ url_for('book.book_detail', id=book.id) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> 返回書籍詳情
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h2 class="mb-4">編輯書籍</h2>
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="title" class="form-label">書名 *</label>
+                    <input type="text" class="form-control" id="title" name="title" value="{{ book.title }}" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="authors" class="form-label">作者（多個作者請用逗號分隔） *</label>
+                    <input type="text" class="form-control" id="authors" name="authors" 
+                           value="{{ book.authors|map(attribute='name')|join(',') }}"
+                           required placeholder="例如：村上春樹, 賴明珠">
+                    <div class="form-text">如果作者不存在，系統會自動新增</div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="categories" class="form-label">題材（多個題材請用逗號分隔）</label>
+                    <input type="text" class="form-control" id="categories" name="categories" 
+                           placeholder="例如：小說,奇幻,科幻"
+                           value="{{ book.categories|map(attribute='name')|join(',') }}">
+                    <div class="form-text">如果題材不存在，系統會自動新增</div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label">簡介</label>
+                    <textarea class="form-control" id="description" name="description" rows="5">{{ book.description or '' }}</textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="reading_status" class="form-label">閱讀狀態</label>
+                    <select class="form-select" id="reading_status" name="reading_status">
+                        <option value="0" {{ 'selected' if book.reading_status == 0 }}>未讀</option>
+                        <option value="1" {{ 'selected' if book.reading_status == 1 }}>閱讀中</option>
+                        <option value="2" {{ 'selected' if book.reading_status == 2 }}>已讀</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="rating" class="form-label">評分</label>
+                    <select class="form-select" id="rating" name="rating">
+                        <option value="" {{ 'selected' if not book.rating }}>未評分</option>
+                        {% for i in range(1, 6) %}
+                        <option value="{{ i }}" {{ 'selected' if book.rating == i }}>{{ i }}星</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="tags" class="form-label">標籤（多個標籤請用逗號分隔）</label>
+                    <input type="text" class="form-control" id="tags" name="tags" 
+                           placeholder="例如：推理,懸疑,心理"
+                           value="{{ book.tags|map(attribute='name')|join(',') }}">
+                    <div class="form-text">如果標籤不存在，系統會自動新增</div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('book.book_detail', id=book.id) }}" class="btn btn-secondary">取消</a>
+                    <button type="submit" class="btn btn-primary">儲存變更</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+{% endblock %} 

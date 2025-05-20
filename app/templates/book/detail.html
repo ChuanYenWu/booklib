@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }} - 書庫系統{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="mb-3">
+        <a href="{{ url_for('book.index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> 返回書籍列表
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="card-title mb-0">{{ book.title }}</h2>
+                <div>
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addUrlModal">
+                        <i class="bi bi-plus-circle"></i> 新增相關網站
+                    </button>
+                    <a href="{{ url_for('book.edit_book', id=book.id) }}" class="btn btn-primary">
+                        <i class="bi bi-pencil"></i> 編輯
+                    </a>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="bi bi-trash"></i> 刪除
+                    </button>
+                </div>
+            </div>
+
+            <table class="table">
+                <tr>
+                    <th style="width: 150px;">作者</th>
+                    <td>
+                        {% if book.authors.count() > 0 %}
+                            {% for author in book.authors %}
+                                <a href="{{ url_for('author.author_detail', id=author.id) }}" class="text-decoration-none">{{ author.name }}</a>
+                                {%- if not loop.last %}, {% endif -%}
+                            {% endfor %}
+                        {% else %}
+                            未知作者
+                        {% endif %}
+                    </td>
+                </tr>
+                {% if book.categories.count() > 0 %}
+                <tr>
+                    <th>題材</th>
+                    <td>
+                        {% for category in book.categories %}
+                            <a href="{{ url_for('category.category_detail', id=category.id) }}" class="badge bg-info text-decoration-none">{{ category.name }}</a>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endif %}
+                {% if book.urls.count() > 0 %}
+                <tr>
+                    <th>相關網站</th>
+                    <td>
+                        <ul class="list-unstyled mb-0">
+                            {% for url in book.urls %}
+                                <li>
+                                    <a href="{{ url.url }}" target="_blank" class="text-decoration-none">
+                                        {{ url.description or url.url }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>閱讀狀態</th>
+                    <td>
+                        <span class="badge bg-{{ 'success' if book.reading_status == 2 else 'warning' if book.reading_status == 1 else 'secondary' }}">
+                            {{ '已讀' if book.reading_status == 2 else '閱讀中' if book.reading_status == 1 else '未讀' }}
+                        </span>
+                    </td>
+                </tr>
+                {% if book.rating %}
+                <tr>
+                    <th>評分</th>
+                    <td>
+                        {% for i in range(book.rating) %}
+                            <i class="bi bi-star-fill text-warning"></i>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endif %}
+                {% if book.tags.count() > 0 %}
+                <tr>
+                    <th>標籤</th>
+                    <td>
+                        {% for tag in book.tags %}
+                            <a href="{{ url_for('tag.tag_detail', id=tag.id) }}" class="badge bg-secondary text-decoration-none">{{ tag.name }}</a>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endif %}
+                {% if book.description %}
+                <tr>
+                    <th>簡介</th>
+                    <td style="white-space: pre-wrap;">{{ book.description }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>建立時間</th>
+                    <td>{{ book.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                </tr>
+                <tr>
+                    <th>最後更新</th>
+                    <td>{{ book.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 新增網站 Modal -->
+<div class="modal fade" id="addUrlModal" tabindex="-1" aria-labelledby="addUrlModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUrlModalLabel">新增相關網站</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('book.add_book_url', id=book.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="url" class="form-label">網址</label>
+                        <input type="url" class="form-control" id="url" name="url" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">描述（選填）</label>
+                        <input type="text" class="form-control" id="description" name="description">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">新增</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 刪除確認對話框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">確認刪除</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                確定要刪除「{{ book.title }}」嗎？此操作無法復原。
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form method="POST" action="{{ url_for('book.delete_book', id=book.id) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">確定刪除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %} 
