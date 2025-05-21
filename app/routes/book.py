@@ -63,16 +63,18 @@ def add_book():
                 book.tags.append(tag)
         
         # 處理相關網址
-        url = request.form.get('url')
-        if url:
-            url_obj = URL(
-                url=url,
-                description=request.form.get('url_description', url),
-                type='book',
-                book=book
-            )
-            db.session.add(url_obj)
+        # 假設模板會提供 multiple inputs for new urls, like new_url[] and new_url_description[]
+        new_urls = request.form.getlist('new_url[]')
+        new_descriptions = request.form.getlist('new_url_description[]')
         
+        # Ensure lists are of the same length, process pairs
+        for i in range(min(len(new_urls), len(new_descriptions))):
+            url = new_urls[i].strip()
+            description = new_descriptions[i].strip()
+            if url: # Only add if url is not empty
+                 url_obj = URL(url=url, description=description, type='book', book=book)
+                 db.session.add(url_obj)
+
         db.session.add(book)
         db.session.commit()
         flash('書籍已成功新增！', 'success')
@@ -133,12 +135,43 @@ def edit_book(id):
                     db.session.add(tag)
                 book.tags.append(tag)
         
+        # 處理相關網址 (更新、刪除現有，新增)
+        existing_urls_to_keep = []
+        for url_obj in book.urls:
+            url_id_str = str(url_obj.id)
+            # 檢查是否有對應的表單數據，以及是否標記為刪除
+            if f'url-{url_id_str}' in request.form and f'delete_url-{url_id_str}' not in request.form:
+                # 更新現有網址資訊
+                url_obj.url = request.form[f'url-{url_id_str}']
+                url_obj.description = request.form.get(f'description-{url_id_str}', '')
+                existing_urls_to_keep.append(url_obj)
+            else:
+                # 如果沒有對應表單數據或標記為刪除，則刪除該網址
+                db.session.delete(url_obj)
+
+        # 清空舊的關聯後重新添加保留的URL，確保數據庫同步
+        book.urls = existing_urls_to_keep
+
+        # 處理新增網址
+        # 假設模板會提供 multiple inputs for new urls, like new_url[] and new_url_description[]
+        new_urls = request.form.getlist('new_url[]')
+        new_descriptions = request.form.getlist('new_url_description[]')
+        
+        # Ensure lists are of the same length, process pairs
+        for i in range(min(len(new_urls), len(new_descriptions))):
+            url = new_urls[i].strip()
+            description = new_descriptions[i].strip()
+            if url: # Only add if url is not empty
+                 url_obj = URL(url=url, description=description, type='book', book=book)
+                 db.session.add(url_obj)
+
         db.session.commit()
-        flash('書籍資訊已更新！', 'success')
+        flash('書籍資訊及相關網站已更新！', 'success')
         return redirect(url_for('book.book_detail', id=id))
     
     categories = Category.query.all()
     tags = Tag.query.all()
+    # 傳遞 url 資訊到模板
     return render_template('book/edit.html', book=book, categories=categories, tags=tags)
 
 @bp.route('/book/<int:id>/delete', methods=['POST'])

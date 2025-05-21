@@ -20,10 +20,10 @@
                 </div>
                 
                 <div class="mb-3">
-                    <label for="authors" class="form-label">作者（多個作者請用逗號分隔） *</label>
+                    <label for="authors" class="form-label">作者（多個作者請用逗號分隔）</label>
                     <input type="text" class="form-control" id="authors" name="authors" 
                            value="{{ book.authors|map(attribute='name')|join(',') }}"
-                           required placeholder="例如：村上春樹, 賴明珠">
+                           placeholder="例如：村上春樹, 賴明珠">
                     <div class="form-text">如果作者不存在，系統會自動新增</div>
                 </div>
                 
@@ -66,7 +66,55 @@
                            value="{{ book.tags|map(attribute='name')|join(',') }}">
                     <div class="form-text">如果標籤不存在，系統會自動新增</div>
                 </div>
+
+                <hr>
+
+                <h4>相關網站</h4>
+                <div id="urls-container">
+                    {% for url_obj in book.urls %}
+                    <div class="row mb-3" data-url-id="{{ url_obj.id }}">
+                        <div class="col-md-5">
+                            <label for="url-{{ url_obj.id }}" class="form-label">網址</label>
+                            <input type="url" class="form-control" id="url-{{ url_obj.id }}" name="url-{{ url_obj.id }}" value="{{ url_obj.url }}">
+                        </div>
+                        <div class="col-md-5">
+                            <label for="description-{{ url_obj.id }}" class="form-label">描述</label>
+                            <input type="text" class="form-control" id="description-{{ url_obj.id }}" name="description-{{ url_obj.id }}" value="{{ url_obj.description or '' }}">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="delete_url-{{ url_obj.id }}" id="delete_url-{{ url_obj.id }}">
+                                <label class="form-check-label" for="delete_url-{{ url_obj.id }}">
+                                    刪除
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- New URL fields will be added here by JavaScript -->
+                    <div id="new-urls">
+                        <!-- Initial new URL field -->
+                        <div class="row mb-3 new-url-row">
+                            <div class="col-md-5">
+                                <label for="new_url-0" class="form-label">新網址</label>
+                                <input type="url" class="form-control" id="new_url-0" name="new_url[]">
+                            </div>
+                            <div class="col-md-5">
+                                <label for="new_url_description-0" class="form-label">描述</label>
+                                <input type="text" class="form-control" id="new_url_description-0" name="new_url_description[]">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-outline-danger remove-new-url">移除</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-outline-primary mb-3" id="add-url-btn">新增網站</button>
                 
+                <hr>
+
                 <div class="d-flex justify-content-between">
                     <a href="{{ url_for('book.book_detail', id=book.id) }}" class="btn btn-secondary">取消</a>
                     <button type="submit" class="btn btn-primary">儲存變更</button>
@@ -79,4 +127,63 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addUrlBtn = document.getElementById('add-url-btn');
+        const newUrlsContainer = document.getElementById('new-urls');
+
+        // Function to update input names/ids for new rows
+        function updateNewRowNamesAndIds() {
+            const newUrlRows = newUrlsContainer.querySelectorAll('.new-url-row');
+            newUrlRows.forEach((row, index) => {
+                // Update IDs for labels and inputs
+                row.querySelector('label[for^="new_url-"]').setAttribute('for', `new_url-${index}`);
+                row.querySelector('input[name^="new_url"]').setAttribute('id', `new_url-${index}`);
+
+                row.querySelector('label[for^="new_url_description-"]').setAttribute('for', `new_url_description-${index}`);
+                row.querySelector('input[name^="new_url_description"]').setAttribute('id', `new_url_description-${index}`);
+
+                // Ensure name attribute is correct (should already be new_url[] and new_url_description[]
+                // No change needed here as we use array notation for backend processing
+            });
+        }
+
+        // Add new URL row
+        addUrlBtn.addEventListener('click', function() {
+            const newUrlRowTemplate = `
+            <div class="row mb-3 new-url-row">
+                <div class="col-md-5">
+                    <label for="new_url-" class="form-label">新網址</label>
+                    <input type="url" class="form-control" name="new_url[]">
+                </div>
+                <div class="col-md-5">
+                    <label for="new_url_description-" class="form-label">描述</label>
+                    <input type="text" class="form-control" name="new_url_description[]">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-danger remove-new-url">移除</button>
+                </div>
+            </div>
+            `;
+            newUrlsContainer.insertAdjacentHTML('beforeend', newUrlRowTemplate);
+            // Update names/ids after adding
+             updateNewRowNamesAndIds();
+        });
+
+        // Remove URL row (delegation for dynamically added elements)
+        newUrlsContainer.addEventListener('click', function(event) {
+            if (event.target.classList.contains('remove-new-url')) {
+                event.target.closest('.new-url-row').remove();
+                 // Update names/ids after removing to keep them sequential (optional but good practice)
+                 // updateNewRowNamesAndIds(); // Consider if re-indexing is necessary or complicates backend parsing
+            }
+        });
+
+         // Initial update for the first new URL row if it exists
+         updateNewRowNamesAndIds();
+    });
+</script>
 {% endblock %} 
