@@ -26,15 +26,49 @@
                     <div class="form-text">如果作者不存在，系統會自動新增</div>
                 </div>
                 
-                <div class="mb-3">
-                    <label for="categories" class="form-label">題材（多個題材請用逗號分隔）</label>
-                    <input type="text" class="form-control" id="categories" name="categories" 
-                           placeholder="例如：小說,奇幻,科幻"
-                           {% if categories %}
-                           value="{{ categories|map(attribute='name')|join(',') }}"
-                           {% endif %}>
-                    <div class="form-text">如果題材不存在，系統會自動新增</div>
+                <hr>
+
+                <h4>作者及相關網站</h4>
+                <div id="authors-container">
+                    <!-- Author entries will be added here by JavaScript -->
+                    <!-- Initial author entry -->
+                    <div class="card mb-3 author-entry">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title mb-0">作者 1</h5>
+                                <button type="button" class="btn btn-outline-danger btn-sm remove-author">移除此作者</button>
+                            </div>
+                            <div class="mb-3">
+                                <label for="author-name-0" class="form-label">作者姓名</label>
+                                <input type="text" class="form-control author-name-input" id="author-name-0" name="authors[0][name]">
+                            </div>
+
+                            <h6>相關網站</h6>
+                            <div class="author-urls-container">
+                                <!-- URL entries for this author will be added here by JavaScript -->
+                                <!-- Initial URL entry for this author -->
+                                <div class="row mb-3 author-url-entry">
+                                    <div class="col-md-5">
+                                        <label for="author-url-0-0" class="form-label">網址</label>
+                                        <input type="url" class="form-control author-url-input" id="author-url-0-0" name="authors[0][urls][0][url]">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label for="author-url-description-0-0" class="form-label">描述</label>
+                                        <input type="text" class="form-control author-url-description-input" id="author-url-description-0-0" name="authors[0][urls][0][description]">
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <button type="button" class="btn btn-outline-danger btn-sm remove-author-url">移除</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm add-author-url">新增網站</button>
+                        </div>
+                    </div>
                 </div>
+
+                <button type="button" class="btn btn-outline-primary mb-3" id="add-author-btn">新增作者</button>
+
+                <hr>
                 
                 <div class="mb-3">
                     <label for="description" class="form-label">簡介</label>
@@ -116,58 +150,135 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const addUrlBtn = document.getElementById('add-url-btn');
-        const newUrlsContainer = document.getElementById('new-urls');
+        const authorsContainer = document.getElementById('authors-container');
+        const addAuthorBtn = document.getElementById('add-author-btn');
 
-        // Function to update input names/ids for new rows
-        function updateNewRowNamesAndIds() {
-            const newUrlRows = newUrlsContainer.querySelectorAll('.new-url-row');
-            newUrlRows.forEach((row, index) => {
-                // Update IDs for labels and inputs
-                row.querySelector('label[for^="new_url-"]').setAttribute('for', `new_url-${index}`);
-                row.querySelector('input[name^="new_url[]"]').setAttribute('id', `new_url-${index}`);
+        // Function to update names and IDs for all authors and their urls
+        function updateNamesAndIds() {
+            const authorEntries = authorsContainer.querySelectorAll('.author-entry');
+            authorEntries.forEach((authorEntry, authorIndex) => {
+                // Update author name input
+                const authorNameInput = authorEntry.querySelector('.author-name-input');
+                authorNameInput.setAttribute('name', `authors[${authorIndex}][name]`);
+                authorNameInput.setAttribute('id', `author-name-${authorIndex}`);
+                authorEntry.querySelector('label[for^="author-name-"]').setAttribute('for', `author-name-${authorIndex}`);
 
-                row.querySelector('label[for^="new_url_description-"]').setAttribute('for', `new_url_description-${index}`);
-                row.querySelector('input[name^="new_url_description[]"]').setAttribute('id', `new_url_description-${index}`);
+                // Update author title
+                authorEntry.querySelector('.card-title').textContent = `作者 ${authorIndex + 1}`;
 
-                // Ensure name attribute is correct (should already be new_url[] and new_url_description[]
-                // No change needed here as we use array notation for backend processing
+                // Update URLs for this author
+                const authorUrlsContainer = authorEntry.querySelector('.author-urls-container');
+                const authorUrlEntries = authorUrlsContainer.querySelectorAll('.author-url-entry');
+                authorUrlEntries.forEach((urlEntry, urlIndex) => {
+                    // Update URL input
+                    const urlInput = urlEntry.querySelector('.author-url-input');
+                    urlInput.setAttribute('name', `authors[${authorIndex}][urls][${urlIndex}][url]`);
+                    urlInput.setAttribute('id', `author-url-${authorIndex}-${urlIndex}`);
+                    urlEntry.querySelector('label[for^="author-url-"]').setAttribute('for', `author-url-${authorIndex}-${urlIndex}`);
+
+                    // Update Description input
+                    const descriptionInput = urlEntry.querySelector('.author-url-description-input');
+                    descriptionInput.setAttribute('name', `authors[${authorIndex}][urls][${urlIndex}][description]`);
+                    descriptionInput.setAttribute('id', `author-url-description-${authorIndex}-${urlIndex}`);
+                    urlEntry.querySelector('label[for^="author-url-description-"]').setAttribute('for', `author-url-description-${authorIndex}-${urlIndex}`);
+                });
+
+                // Show/hide remove author button (hide for the first author)
+                const removeAuthorBtn = authorEntry.querySelector('.remove-author');
+                if (authorIndex === 0) {
+                    removeAuthorBtn.style.display = 'none';
+                } else {
+                    removeAuthorBtn.style.display = '';
+                }
             });
         }
 
-        // Add new URL row
-        addUrlBtn.addEventListener('click', function() {
-            const newUrlRowTemplate = `
-            <div class="row mb-3 new-url-row">
-                <div class="col-md-5">
-                    <label for="new_url-" class="form-label">新網址</label>
-                    <input type="url" class="form-control" name="new_url[]">
-                </div>
-                <div class="col-md-5">
-                    <label for="new_url_description-" class="form-label">描述</label>
-                    <input type="text" class="form-control" name="new_url_description[]">
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="button" class="btn btn-outline-danger remove-new-url">移除</button>
-                </div>
-            </div>
-            `;
-            newUrlsContainer.insertAdjacentHTML('beforeend', newUrlRowTemplate);
-            // Update names/ids after adding
-             updateNewRowNamesAndIds();
-        });
-
-        // Remove URL row (delegation for dynamically added elements)
-        newUrlsContainer.addEventListener('click', function(event) {
-            if (event.target.classList.contains('remove-new-url')) {
-                event.target.closest('.new-url-row').remove();
-                 // Update names/ids after removing to keep them sequential (optional but good practice)
-                 // updateNewRowNamesAndIds(); // Consider if re-indexing is necessary or complicates backend parsing
+        // Add URL entry for a specific author (delegation)
+        authorsContainer.addEventListener('click', function(event) {
+            if (event.target.classList.contains('add-author-url')) {
+                const authorEntry = event.target.closest('.author-entry');
+                const authorUrlsContainer = authorEntry.querySelector('.author-urls-container');
+                // Use a function to generate the template string to handle escaping
+                const authorUrlEntryTemplate = getAuthorUrlEntryTemplate();
+                authorUrlsContainer.insertAdjacentHTML('beforeend', authorUrlEntryTemplate);
+                updateNamesAndIds(); // Update names and IDs after adding a new url
             }
         });
 
-        // Initial update for the first new URL row if it exists
-        updateNewRowNamesAndIds();
+        // Function to generate the HTML template for a new author URL entry
+        function getAuthorUrlEntryTemplate() {
+            return '\n' +
+                '<div class=\"row mb-3 author-url-entry\">\n' +
+                '    <div class=\"col-md-5\">\n' +
+                '        <label for=\"author-url--\" class=\"form-label\">網址</label>\n' +
+                '        <input type=\"url\" class=\"form-control author-url-input\" name=\"dummy_name_url\">\n' +
+                '    </div>\n' +
+                '    <div class=\"col-md-5\">\n' +
+                '        <label for=\"author-url-description--\" class=\"form-label\">描述</label>\n' +
+                '        <input type=\"text\" class=\"form-control author-url-description-input\" name=\"dummy_name_description\">\n' +
+                '    </div>\n' +
+                '    <div class=\"col-md-2 d-flex align-items-end\">\n' +
+                '        <button type=\"button\" class=\"btn btn-outline-danger btn-sm remove-author-url\">移除</button>\n' +
+                '    </div>\n' +
+                '</div>\n';
+        }
+
+        // Function to generate the HTML template for a new author entry
+        function getAuthorEntryTemplate() {
+             return '\n' +
+                '<div class=\"card mb-3 author-entry\">\n' +
+                '    <div class=\"card-body\">\n' +
+                '        <div class=\"d-flex justify-content-between align-items-center mb-3\">\n' +
+                '            <h5 class=\"card-title mb-0\">新增作者</h5>\n' +
+                '            <button type=\"button\" class=\"btn btn-outline-danger btn-sm remove-author\">移除此作者</button>\n' +
+                '        </div>\n' +
+                '        <div class=\"mb-3\">\n' +
+                '            <label for=\"author-name-\" class=\"form-label\">作者姓名</label>\n' +
+                '            <input type=\"text\" class=\"form-control author-name-input\" name=\"dummy_name_author_name\" required>\n' +
+                '        </div>\n' +
+                '\n' +
+                '        <h6>相關網站</h6>\n' +
+                '        <div class=\"author-urls-container\">\n' +
+                '            <!-- Initial URL entry for this author -->\n' +
+                getAuthorUrlEntryTemplate() + // Include the URL template here
+                '        </div>\n' +
+                '        <button type=\"button\" class=\"btn btn-outline-primary btn-sm add-author-url\">新增網站</button>\n' +
+                '    </div>\n' +
+                '</div>\n';
+        }
+
+        // Add Author entry
+        addAuthorBtn.addEventListener('click', function() {
+            const authorEntryTemplate = getAuthorEntryTemplate(); // Use the template function
+            authorsContainer.insertAdjacentHTML('beforeend', authorEntryTemplate);
+            updateNamesAndIds(); // Update names and IDs after adding a new author
+        });
+
+        // Remove Author entry (delegation)
+        authorsContainer.addEventListener('click', function(event) {
+            if (event.target.classList.contains('remove-author')) {
+                // Ensure we don't remove the last author entry
+                if (authorsContainer.querySelectorAll('.author-entry').length > 1) {
+                    event.target.closest('.author-entry').remove();
+                    updateNamesAndIds(); // Update names and IDs after removing an author
+                }
+            }
+        });
+
+        // Remove URL entry for a specific author (delegation)
+        authorsContainer.addEventListener('click', function(event) {
+            if (event.target.classList.contains('remove-author-url')) {
+                // Ensure we don't remove the last url entry for an author
+                const authorUrlsContainer = event.target.closest('.author-urls-container');
+                if (authorUrlsContainer.querySelectorAll('.author-url-entry').length > 1) {
+                    event.target.closest('.author-url-entry').remove();
+                    updateNamesAndIds(); // Update names and IDs after removing a url
+                }
+            }
+        });
+
+        // Initial update for the first author entry and its initial url entry
+        updateNamesAndIds();
     });
 </script>
 {% endblock %} 
