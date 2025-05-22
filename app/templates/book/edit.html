@@ -171,6 +171,10 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    const addCategoryUrl = "{{ url_for('book.add_category_ajax') }}";
+    const addTagUrl = "{{ url_for('book.add_tag_ajax') }}";
+</script>
 <script src="{{ url_for('static', filename='js/tag_category_selector.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {

@@ -139,18 +139,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // 新增選項
     function addNewOption(type) {
         const inputElement = type === 'category' ? newCategoryInput : newTagInput;
+        const container = type === 'category' ? availableCategoriesContainer : availableTagsContainer;
         const value = inputElement.value.trim();
+        // 使用全局變數獲取 URL
+        const addUrl = type === 'category' ? addCategoryUrl : addTagUrl;
         
         if (!value) return;
         
         // 檢查是否已存在
-        const container = type === 'category' ? availableCategoriesContainer : availableTagsContainer;
         const existingOption = container.querySelector(`[data-name="${value}"]`);
             
         if (existingOption) {
             // 如果已存在但未選擇，則選擇它
             if (!existingOption.classList.contains('selected')) {
                 toggleSelection(existingOption, type);
+                alert(`${type === 'category' ? '題材' : '標籤'} "${value}" 已存在，已自動為您選擇！`);
             } else {
                 alert(`${type === 'category' ? '題材' : '標籤'} "${value}" 已存在且已被選擇！`);
             }
@@ -158,25 +161,51 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // 創建新選項
-        const newOption = document.createElement('span');
-        newOption.classList.add(type === 'category' ? 'category-option' : 'tag-option');
-        newOption.classList.add('selected'); // 新增的選項預設為已選擇
-        newOption.dataset.name = value;
-        newOption.dataset.id = 'new_' + Date.now(); // 臨時ID
-        newOption.dataset.type = type;
-        newOption.textContent = value;
-        
-        // 添加到「所有題材/標籤」區域
-        container.appendChild(newOption);
-        
-        // 更新「已選擇的題材/標籤」區域
-        updateSelectedContainers();
-        
-        // 更新隱藏輸入欄位
-        updateHiddenInputs();
-        
-        // 清空輸入欄位
-        inputElement.value = '';
+        // 如果不存在，發送 AJAX 請求到後端新增
+        fetch(addUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `name=${encodeURIComponent(value)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 後端成功處理，創建新選項或選取現有選項
+                const newOption = document.createElement('span');
+                newOption.classList.add(type === 'category' ? 'category-option' : 'tag-option');
+                newOption.classList.add('selected'); // 新增的選項預設為已選擇
+                newOption.dataset.name = data.name; // 使用後端返回的名稱
+                newOption.dataset.id = data.id; // 使用後端返回的 ID
+                newOption.dataset.type = type;
+                newOption.textContent = data.name; // 使用後端返回的名稱
+                
+                // 添加到「所有題材/標籤」區域
+                container.appendChild(newOption);
+                
+                // 更新「已選擇的題材/標籤」區域
+                updateSelectedContainers();
+                
+                // 更新隱藏輸入欄位
+                updateHiddenInputs();
+
+                // 顯示後端返回的訊息
+                alert(data.message);
+
+            } else {
+                // 後端處理失敗
+                alert(`新增失敗: ${data.message}`);
+            }
+        })
+        .catch(error => {
+            // 網絡或請求錯誤
+            console.error('Error:', error);
+            alert(`新增過程中發生錯誤: ${error}`);
+        })
+        .finally(() => {
+            // 無論成功或失敗，清空輸入欄位
+            inputElement.value = '';
+        });
     }
 }); 

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from .. import db
 from ..models import Book, Author, Category, Tag, URL
 
@@ -586,4 +586,44 @@ def add_book_url(id):
     db.session.commit()
     
     flash('相關網站已成功新增！', 'success')
-    return redirect(url_for('book.book_detail', id=id)) 
+    return redirect(url_for('book.book_detail', id=id))
+
+# 新增題材 (AJAX)
+@bp.route('/book/add_category_ajax', methods=['POST'])
+def add_category_ajax():
+    name = request.form.get('name')
+    if not name:
+        return jsonify({'success': False, 'message': '名稱不能為空'}), 400
+
+    category = Category.query.filter_by(name=name.strip()).first()
+    if category:
+        return jsonify({'success': True, 'id': category.id, 'name': category.name, 'message': '題材已存在，已選取'}), 200
+
+    try:
+        new_category = Category(name=name.strip())
+        db.session.add(new_category)
+        db.session.commit()
+        return jsonify({'success': True, 'id': new_category.id, 'name': new_category.name, 'message': '題材已成功新增'}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': f'新增題材失敗: {e}'}), 500
+
+# 新增標籤 (AJAX)
+@bp.route('/book/add_tag_ajax', methods=['POST'])
+def add_tag_ajax():
+    name = request.form.get('name')
+    if not name:
+        return jsonify({'success': False, 'message': '名稱不能為空'}), 400
+
+    tag = Tag.query.filter_by(name=name.strip()).first()
+    if tag:
+        return jsonify({'success': True, 'id': tag.id, 'name': tag.name, 'message': '標籤已存在，已選取'}), 200
+
+    try:
+        new_tag = Tag(name=name.strip())
+        db.session.add(new_tag)
+        db.session.commit()
+        return jsonify({'success': True, 'id': new_tag.id, 'name': new_tag.name, 'message': '標籤已成功新增'}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': f'新增標籤失敗: {e}'}), 500 
