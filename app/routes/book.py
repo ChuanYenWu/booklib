@@ -518,7 +518,9 @@ def edit_book(id):
         'reading_status': book.reading_status,
         'rating': book.rating,
         'authors': [],
-        'urls': []
+        'urls': [],
+        'categories': book.categories,
+        'tags': book.tags
     }
 
     # 獲取所有作者及其 URL，以便構建前端所需的結構
