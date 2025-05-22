@@ -97,20 +97,59 @@
                 </div>
                 
                 <div class="mb-3">
-                    <label for="categories" class="form-label">題材（多個題材請用逗號分隔）</label>
-                    <input type="text" class="form-control" id="categories" name="categories" 
-                           placeholder="例如：奇幻, 科幻, 歷史">
-                    <div class="form-text">如果題材不存在，系統會自動新增</div>
+                    <label class="form-label">題材</label>
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h6>已選擇的題材</h6>
+                            <div id="selected-categories" class="mb-2">
+                                <!-- 已選擇的題材會顯示在這裡 -->
+                            </div>
+                            <h6>所有題材</h6>
+                            <div id="available-categories" class="mb-2">
+                                <!-- 所有可選擇的題材會顯示在這裡 -->
+                                {% for category in categories %}
+                                <span class="category-option" 
+                                      data-id="{{ category.id }}" 
+                                      data-name="{{ category.name }}" 
+                                      data-type="category">{{ category.name }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="input-group mt-2">
+                                <input type="text" class="form-control" id="new-category-input" placeholder="新增題材...">
+                                <button type="button" class="btn btn-outline-primary" id="add-category-btn">新增</button>
+                            </div>
+                            <!-- 隱藏的輸入欄位，用於提交選擇的題材 -->
+                            <input type="hidden" id="selected-categories-hidden" name="categories" value="">
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="mb-3">
-                    <label for="tags" class="form-label">標籤（多個標籤請用逗號分隔）</label>
-                    <input type="text" class="form-control" id="tags" name="tags" 
-                           placeholder="例如：推理,懸疑,心理"
-                           {% if tags %}
-                           value="{{ tags|map(attribute='name')|join(',') }}"
-                           {% endif %}>
-                    <div class="form-text">如果標籤不存在，系統會自動新增</div>
+                    <label class="form-label">標籤</label>
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h6>已選擇的標籤</h6>
+                            <div id="selected-tags" class="mb-2">
+                                <!-- 已選擇的標籤會顯示在這裡 -->
+                            </div>
+                            <h6>所有標籤</h6>
+                            <div id="available-tags" class="mb-2">
+                                <!-- 所有可選擇的標籤會顯示在這裡 -->
+                                {% for tag in tags %}
+                                <span class="tag-option" 
+                                      data-id="{{ tag.id }}" 
+                                      data-name="{{ tag.name }}" 
+                                      data-type="tag">{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="input-group mt-2">
+                                <input type="text" class="form-control" id="new-tag-input" placeholder="新增標籤...">
+                                <button type="button" class="btn btn-outline-primary" id="add-tag-btn">新增</button>
+                            </div>
+                            <!-- 隱藏的輸入欄位，用於提交選擇的標籤 -->
+                            <input type="hidden" id="selected-tags-hidden" name="tags" value="">
+                        </div>
+                    </div>
                 </div>
                 
                 <hr>
@@ -152,9 +191,11 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/book_add.css') }}">
 {% endblock %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', filename='js/tag_category_selector.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const authorsContainer = document.getElementById('authors-container');
