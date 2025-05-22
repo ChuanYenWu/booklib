@@ -1,0 +1,31 @@
+.category-option,
+.tag-option {
+    cursor: pointer;
+    padding: 5px 10px;
+    margin: 3px;
+    border-radius: 15px;
+    border: 1px solid #ccc;
+    background-color: #e9ecef; /* Default: light gray */
+}
+
+.category-option.selected,
+.tag-option.selected {
+    background-color: #fd7e14; /* Orange for selected */
+    color: white;
+    border-color: #fd7e14;
+}
+
+.category-option:hover,
+.tag-option:hover {
+    opacity: 0.8;
+}
+
+#selected-categories,
+#available-categories,
+#selected-tags,
+#available-tags {
+    border: 1px solid #ced4da;
+    padding: 10px;
+    border-radius: 5px;
+    min-height: 40px; /* Ensure areas have some height */
+} 
