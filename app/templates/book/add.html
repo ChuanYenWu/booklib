@@ -333,4 +333,61 @@
         updateNamesAndIds();
     });
 </script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addUrlBtn = document.getElementById('add-url-btn');
+        const newUrlsContainer = document.getElementById('new-urls');
+
+        // Function to update input names/ids for new rows
+        function updateNewRowNamesAndIds() {
+            const newUrlRows = newUrlsContainer.querySelectorAll('.new-url-row');
+            newUrlRows.forEach((row, index) => {
+                // Update IDs for labels and inputs
+                row.querySelector('label[for^="new_url-"]').setAttribute('for', `new_url-${index}`);
+                row.querySelector('input[name^="new_url"]').setAttribute('id', `new_url-${index}`);
+
+                row.querySelector('label[for^="new_url_description-"]').setAttribute('for', `new_url_description-${index}`);
+                row.querySelector('input[name^="new_url_description"]').setAttribute('id', `new_url_description-${index}`);
+
+                // Ensure name attribute is correct (should already be new_url[] and new_url_description[]
+                // No change needed here as we use array notation for backend processing
+            });
+        }
+
+        // Add new URL row
+        addUrlBtn.addEventListener('click', function() {
+            const newUrlRowTemplate = `
+            <div class="row mb-3 new-url-row">
+                <div class="col-md-5">
+                    <label for="new_url-" class="form-label">新網址</label>
+                    <input type="url" class="form-control" name="new_url[]">
+                </div>
+                <div class="col-md-5">
+                    <label for="new_url_description-" class="form-label">描述</label>
+                    <input type="text" class="form-control" name="new_url_description[]">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-danger remove-new-url">移除</button>
+                </div>
+            </div>
+            `;
+            newUrlsContainer.insertAdjacentHTML('beforeend', newUrlRowTemplate);
+            // Update names/ids after adding
+             updateNewRowNamesAndIds();
+        });
+
+        // Remove URL row (delegation for dynamically added elements)
+        newUrlsContainer.addEventListener('click', function(event) {
+            if (event.target.classList.contains('remove-new-url')) {
+                event.target.closest('.new-url-row').remove();
+                 // Update names/ids after removing to keep them sequential (optional but good practice)
+                 // updateNewRowNamesAndIds(); // Consider if re-indexing is necessary or complicates backend parsing
+            }
+        });
+
+         // Initial update for the first new URL row if it exists
+         updateNewRowNamesAndIds();
+    });
+</script>
 {% endblock %} 

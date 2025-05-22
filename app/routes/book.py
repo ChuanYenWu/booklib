@@ -164,6 +164,27 @@ def add_book():
                 # 將標籤關聯到書籍
                 book.tags.append(tag)
 
+        # --- 開始處理書籍本身的相關網站 (新增) ---
+        # 從 request.form 中獲取新增的書籍 URL 數據
+        new_book_urls = request.form.getlist('new_url[]')
+        new_book_descriptions = request.form.getlist('new_url_description[]')
+
+        # 迭代並新增 URL
+        for i in range(len(new_book_urls)):
+            url_str = new_book_urls[i].strip()
+            description_str = new_book_descriptions[i].strip() if i < len(new_book_descriptions) else ''
+
+            if url_str:
+                url_obj = URL(
+                    url=url_str,
+                    description=description_str,
+                    type='book', # 設置type為book
+                    book=book # 將URL關聯到書籍
+                )
+                db.session.add(url_obj)
+
+        # --- 書籍本身的相關網站處理結束 ---
+
         db.session.add(book)
         db.session.commit()
         flash('書籍及作者相關網站已成功新增！', 'success')
@@ -465,6 +486,8 @@ def edit_book(id):
                     book=book
                  )
                  db.session.add(url_obj)
+                 # 將新創建的 URL 物件添加到書籍的 urls 關聯中
+                 book.urls.append(url_obj)
 
         # --- 書籍相關網站處理結束 ---
 
