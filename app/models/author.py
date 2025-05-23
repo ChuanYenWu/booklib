@@ -26,8 +26,7 @@ class Author(db.Model):
                           backref=db.backref('authors', lazy='dynamic'))
     
     # 相關網址（一對多關係）
-    urls = db.relationship('URL', backref='author', lazy='dynamic',
-                         foreign_keys='URL.author_id',
+    urls = db.relationship('AuthorURL', backref='author', lazy='dynamic',
                          cascade='all, delete-orphan')
     
     # 時間戳記
@@ -40,4 +39,4 @@ class Author(db.Model):
     @property
     def personal_sites(self):
         """返回作者個人網站列表"""
-        return self.urls.filter_by(type='author').all() 
+        return self.urls.all() 

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from app.models.author import Author
-from app.models.url import URL
+from app.models.url import AuthorURL
 from app import db
 
 bp = Blueprint('author', __name__)
@@ -26,10 +26,9 @@ def add_author():
         # 如果提供了URL，則創建URL記錄
         url = request.form.get('url')
         if url:
-            url_obj = URL(
+            url_obj = AuthorURL(
                 url=url,
                 description=request.form.get('url_description', url),
-                type='author',
                 author=author
             )
             db.session.add(url_obj)
@@ -65,23 +64,22 @@ def edit_author(id):
 
             if delete_flag == '1' and url_id:
                 # 刪除現有網址
-                url_to_delete = URL.query.get(url_id)
+                url_to_delete = AuthorURL.query.get(url_id)
                 if url_to_delete:
                     db.session.delete(url_to_delete)
             elif delete_flag == '0':
                 if url_id:
                     # 更新現有網址
-                    url_to_update = URL.query.get(url_id)
+                    url_to_update = AuthorURL.query.get(url_id)
                     if url_to_update:
                         url_to_update.url = url_value
                         url_to_update.description = description
                 else:
                     # 新增網址
                     if url_value: # 確保網址不為空
-                         new_url = URL(
+                         new_url = AuthorURL(
                             url=url_value,
                             description=description,
-                            type='author',
                             author=author
                         )
                          db.session.add(new_url)

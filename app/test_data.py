@@ -3,7 +3,7 @@ from app.models.author import Author
 from app.models.book import Book
 from app.models.category import Category
 from app.models.tag import Tag
-from app.models.url import URL
+from app.models.url import BookURL, AuthorURL
 
 def create_test_data():
     # 創建作者
@@ -54,16 +54,14 @@ def create_test_data():
     book3.tags.extend([tag1, tag2])
     
     # 創建相關網址
-    url1 = URL(
+    url1 = AuthorURL(
         url='https://zh.wikipedia.org/wiki/村上春樹',
         description='村上春樹維基百科',
-        type='author',
         author=author1  # 設置作者關聯
     )
-    url2 = URL(
+    url2 = BookURL(
         url='https://book.douban.com/subject/1046265/',
         description='挪威的森林豆瓣頁面',
-        type='book',
         book=book1  # 設置書籍關聯
     )
     

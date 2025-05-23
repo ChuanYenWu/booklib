@@ -9,7 +9,7 @@ from .book import Book
 from .author import Author
 from .category import Category
 from .tag import Tag
-from .url import URL
+from .url import BookURL, AuthorURL
 
 # 確保所有模型都被導入
-__all__ = ['Book', 'Author', 'Category', 'Tag', 'URL'] 
+__all__ = ['Book', 'Author', 'Category', 'Tag', 'BookURL', 'AuthorURL'] 

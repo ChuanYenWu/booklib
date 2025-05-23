@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from .. import db
-from ..models import Book, Author, Category, Tag, URL
+from ..models import Book, Author, Category, Tag, BookURL, AuthorURL
 
 # 創建藍圖
 main = Blueprint('main', __name__)
@@ -135,10 +135,9 @@ def add_book_url(id):
         return jsonify({'error': '網址不能為空'}), 400
         
     book = Book.query.get_or_404(id)
-    new_url = URL(
+    new_url = BookURL(
         url=url,
         description=description,
-        type='book',
         book=book
     )
     
@@ -156,10 +155,9 @@ def add_author_url(id):
         return jsonify({'error': '網址不能為空'}), 400
         
     author = Author.query.get_or_404(id)
-    new_url = URL(
+    new_url = AuthorURL(
         url=url,
         description=description,
-        type='author',
         author=author
     )
     
@@ -168,9 +166,16 @@ def add_author_url(id):
     
     return jsonify({'message': '網址已成功添加'})
 
-@main.route('/url/<int:id>/delete', methods=['POST'])
-def delete_url(id):
-    url = URL.query.get_or_404(id)
+@main.route('/book_url/<int:id>/delete', methods=['POST'])
+def delete_book_url(id):
+    url = BookURL.query.get_or_404(id)
+    db.session.delete(url)
+    db.session.commit()
+    return jsonify({'message': '網址已成功刪除'})
+    
+@main.route('/author_url/<int:id>/delete', methods=['POST'])
+def delete_author_url(id):
+    url = AuthorURL.query.get_or_404(id)
     db.session.delete(url)
     db.session.commit()
     return jsonify({'message': '網址已成功刪除'}) 

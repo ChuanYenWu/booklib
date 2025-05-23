@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from .. import db
-from ..models import Book, Author, Category, Tag, URL
+from ..models import Book, Author, Category, Tag, BookURL, AuthorURL
 
 bp = Blueprint('book', __name__)
 
@@ -128,10 +128,9 @@ def add_book():
                 description = url_entry['description']
                 # 再次檢查URL是否為空，雖然之前已經檢查過，但作為保險
                 if url:
-                    url_obj = URL(
+                    url_obj = AuthorURL(
                         url=url,
                         description=description,
-                        type='author', # 設置type為author
                         author=author # 將URL關聯到作者
                     )
                     db.session.add(url_obj)
@@ -175,10 +174,9 @@ def add_book():
             description_str = new_book_descriptions[i].strip() if i < len(new_book_descriptions) else ''
 
             if url_str:
-                url_obj = URL(
+                url_obj = BookURL(
                     url=url_str,
                     description=description_str,
-                    type='book', # 設置type為book
                     book=book # 將URL關聯到書籍
                 )
                 db.session.add(url_obj)
@@ -382,20 +380,18 @@ def edit_book(id):
                              # 在這裡，帶有ID但找不到對應物件的情況，我們也視為新增，但這可能導致重複，需要謹慎。
                              # 更安全的做法是：如果帶ID但找不到物件，說明數據有問題，可以忽略或報錯。
                              # 暫時按照新增處理，如果前端發送了帶無效ID的URL數據。
-                             url_obj = URL(
+                             url_obj = AuthorURL(
                                 url=url_str,
                                 description=description,
-                                type='author',
                                 author=author
                             )
                              db.session.add(url_obj)
 
                     else:
                         # 新增 URL (沒有ID的都是新增)
-                        url_obj = URL(
+                        url_obj = AuthorURL(
                             url=url_str,
                             description=description,
-                            type='author',
                             author=author
                         )
                         db.session.add(url_obj)
@@ -442,7 +438,7 @@ def edit_book(id):
             is_marked_for_deletion = f'delete_url-{url_id_str}' in request.form
 
             # 根據 ID 獲取 URL 物件
-            url_obj = URL.query.get(url_id)
+            url_obj = BookURL.query.get(url_id)
 
             if url_obj and url_obj.book_id == book.id: # 確保 URL 存在且屬於當前書籍
                 if is_marked_for_deletion:
@@ -470,16 +466,15 @@ def edit_book(id):
         for url_to_remove in urls_to_remove_from_book:
             db.session.delete(url_to_remove)
 
-        # 清空舊的書籍 URL (type='book') 關聯後重新添加保留的 URL，確保數據庫同步
+        # 清空舊的書籍 URL 關聯後重新添加保留的 URL，確保數據庫同步
         # 過濾掉已經標記為刪除的書籍 URL
         # Note: SQLAlchemy will automatically remove deleted objects from the relationship upon commit
         # However, explicitly managing the list can make logic clearer or handle specific cases.
         # Given the previous logic was trying to manage the list, let's adapt it.
-        # We need to ensure book.urls only contains non-book URLs and the ones we decided to keep.
+        # We need to ensure book.urls only contains the BookURL objects we decided to keep.
         
-        # Get all current URLs associated with the book, excluding those marked for deletion
-        # and those with type != 'book'
-        updated_book_urls_list = [url_obj for url_obj in book.urls if url_obj.type != 'book' and url_obj not in urls_to_remove_from_book] + existing_book_urls_to_keep
+        # Get all current BookURL objects associated with the book, excluding those marked for deletion
+        updated_book_urls_list = [url_obj for url_obj in book.urls if url_obj not in urls_to_remove_from_book] + existing_book_urls_to_keep
         
         # Assign the updated list to book.urls relationship. SQLAlchemy handles the diff.
         book.urls = updated_book_urls_list
@@ -492,10 +487,9 @@ def edit_book(id):
             url_str = url_entry['url']
             description = url_entry['description']
             if url_str.strip():
-                 url_obj = URL(
+                 url_obj = BookURL(
                     url=url_str,
                     description=description,
-                    type='book',
                     book=book
                  )
                  db.session.add(url_obj)
@@ -569,25 +563,23 @@ def edit_book(id):
             'name': author.name,
             'urls': []
         }
-        # 過濾出屬於此作者的 URL
-        author_urls = [url for url in book.urls if url.author_id == author.id]
+        # 獲取此作者的所有 URL
+        author_urls = author.urls.all()
         for url_obj in author_urls:
              author_data['urls'].append({
                  'id': url_obj.id,
                  'url': url_obj.url,
-                 'description': url_obj.description,
-                 'type': url_obj.type # 包含 type 資訊
+                 'description': url_obj.description
              })
         book_data['authors'].append(author_data)
 
-    # 處理書籍本身的 URL (type 為 'book')
-    book_only_urls = [url for url in book.urls if url.type == 'book']
-    for url_obj in book_only_urls:
+    # 處理書籍本身的 URL
+    book_urls = book.urls.all()
+    for url_obj in book_urls:
          book_data['urls'].append({
              'id': url_obj.id,
              'url': url_obj.url,
-             'description': url_obj.description,
-             'type': url_obj.type # 包含 type 資訊
+             'description': url_obj.description
          })
 
     # 傳遞字典化的書籍數據到模板
@@ -611,10 +603,9 @@ def add_book_url(id):
         flash('網址不能為空', 'error')
         return redirect(url_for('book.book_detail', id=id))
         
-    url_obj = URL(
+    url_obj = BookURL(
         url=url,
         description=description,
-        type='book',
         book=book
     )
     

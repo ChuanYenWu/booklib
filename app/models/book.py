@@ -26,8 +26,7 @@ class Book(db.Model):
     #tags = db.relationship('Tag', secondary='book_tag', lazy='dynamic')
     
     # 相關網址（一對多關係）
-    urls = db.relationship('URL', backref='book', lazy='dynamic',
-                         foreign_keys='URL.book_id',
+    urls = db.relationship('BookURL', backref='book', lazy='dynamic',
                          cascade='all, delete-orphan')
     
     def __repr__(self):
@@ -51,4 +50,4 @@ class Book(db.Model):
     @property
     def site_urls(self):
         """返回書籍相關網址列表"""
-        return self.urls.filter_by(type='book').all() 
+        return self.urls.all() 
