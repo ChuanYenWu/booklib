@@ -450,10 +450,21 @@ def edit_book(id):
                     urls_to_remove_from_book.append(url_obj)
                 else:
                     # 如果未標記為刪除，更新其信息並添加到保留列表
-                    # 注意：這裡只處理刪除，更新邏輯需要另外實現或確認現有邏輯是否足夠
-                    # 目前 edit.html 中現有 URL 的 input 名稱是 url-{{ url_obj.id }} 和 description-{{ url_obj.id }}
-                    # 後端會自動根據這些名稱更新對應的 URL 物件，所以這裡只需要處理刪除
-                    existing_book_urls_to_keep.append(url_obj)
+                    # 明確獲取更新後的 URL 和描述
+                    updated_url_str = request.form.get(f'url-{url_id_str}', '').strip()
+                    updated_description_str = request.form.get(f'description-{url_id_str}', '').strip()
+
+                    # 如果更新後的網址不為空，則更新物件並保留
+                    if updated_url_str:
+                        url_obj.url = updated_url_str
+                        url_obj.description = updated_description_str
+                        existing_book_urls_to_keep.append(url_obj)
+                    else:
+                        # 如果更新後的網址為空，則視為需要刪除
+                        # 注意：這裡的邏輯需要與前端行為一致。如果前端清空網址即表示刪除，則在此處處理。
+                        # 如果前端清空網址但未勾選刪除框表示錯誤，則可以忽略或報錯。
+                        # 根據目前的需求，清空網址應視為刪除。
+                        urls_to_remove_from_book.append(url_obj)
 
         # 執行刪除操作
         for url_to_remove in urls_to_remove_from_book:
