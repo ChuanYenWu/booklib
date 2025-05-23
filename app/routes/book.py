@@ -414,64 +414,66 @@ def edit_book(id):
 
         # --- 作者處理結束 ---
 
-        # 處理書籍本身的相關網站 (原有的獨立於作者的網站)
-        # 獲取現有書籍 URL 的映射
-        existing_book_urls_map = {url_obj.id: url_obj for url_obj in book.urls if url_obj.type == 'book'}
+        # --- 開始處理提交的新增書籍 URL ---
+        # 從 request.form 中獲取新增的書籍 URL 數據
+        new_book_urls = request.form.getlist('new_url[]')
+        new_book_descriptions = request.form.getlist('new_url_description[]')
 
-        # 獲取提交數據中的書籍 URL 列表 (新增的)
+        # 將獲取的數據轉換為 submitted_new_book_urls_data 結構
         submitted_new_book_urls_data = []
-        # 從form_data中解析新增的書籍URL
-        new_book_url_pattern = re.compile(r'new_book_url\[(\d+)\]') # 新增：處理新增書籍URL
-        new_book_url_description_pattern = re.compile(r'new_book_url_description\[(\d+)\]') # 新增：處理新增書籍URL描述
+        for i in range(len(new_book_urls)):
+            url_str = new_book_urls[i].strip()
+            description_str = new_book_descriptions[i].strip() if i < len(new_book_descriptions) else ''
+            if url_str:
+                submitted_new_book_urls_data.append({'url': url_str, 'description': description_str})
+        # --- 處理提交的新增書籍 URL 結束 ---
 
-        new_book_urls_dict = {}
-        for key, value_list in form_data.items():
-            match_url = new_book_url_pattern.match(key)
-            if match_url:
-                index = int(match_url.group(1))
-                if index not in new_book_urls_dict:
-                    new_book_urls_dict[index] = {'url': '', 'description': ''}
-                new_book_urls_dict[index]['url'] = value_list[0] if isinstance(value_list, list) else value_list
-                continue
+        # --- 開始處理現有書籍 URL 的更新和刪除 ---
+        # 獲取提交的現有書籍 URL ID 列表
+        submitted_existing_book_url_ids = request.form.getlist('existing_book_url_id[]')
 
-            match_desc = new_book_url_description_pattern.match(key)
-            if match_desc:
-                index = int(match_desc.group(1))
-                if index not in new_book_urls_dict:
-                    new_book_urls_dict[index] = {'url': '', 'description': ''}
-                new_book_urls_dict[index]['description'] = value_list[0] if isinstance(value_list, list) else value_list
-                continue
-
-        # 將新增的書籍 URL 字典轉換為列表
-        for index in sorted(new_book_urls_dict.keys()):
-             url_entry = new_book_urls_dict[index]
-             if url_entry['url'].strip():
-                 submitted_new_book_urls_data.append(url_entry)
-
-        # 處理現有書籍 URL 的刪除
-        # 從 form_data 中檢查是否有標記為刪除的現有書籍 URL
+        # 遍歷現有書籍 URL，判斷是否需要刪除或更新
         existing_book_urls_to_keep = []
         urls_to_remove_from_book = []
-        for url_obj in book.urls:
-            if url_obj.type == 'book':
-                url_id_str = str(url_obj.id)
-                # 檢查是否明確標記為刪除
-                is_marked_for_deletion = f'delete_book_url-{url_id_str}' in request.form
 
-                if not is_marked_for_deletion:
-                     existing_book_urls_to_keep.append(url_obj)
-                else:
+        for url_id_str in submitted_existing_book_url_ids:
+            url_id = int(url_id_str)
+            # 檢查是否明確標記為刪除
+            is_marked_for_deletion = f'delete_url-{url_id_str}' in request.form
+
+            # 根據 ID 獲取 URL 物件
+            url_obj = URL.query.get(url_id)
+
+            if url_obj and url_obj.book_id == book.id: # 確保 URL 存在且屬於當前書籍
+                if is_marked_for_deletion:
+                    # 如果標記為刪除，添加到待刪除列表
                     urls_to_remove_from_book.append(url_obj)
+                else:
+                    # 如果未標記為刪除，更新其信息並添加到保留列表
+                    # 注意：這裡只處理刪除，更新邏輯需要另外實現或確認現有邏輯是否足夠
+                    # 目前 edit.html 中現有 URL 的 input 名稱是 url-{{ url_obj.id }} 和 description-{{ url_obj.id }}
+                    # 後端會自動根據這些名稱更新對應的 URL 物件，所以這裡只需要處理刪除
+                    existing_book_urls_to_keep.append(url_obj)
 
+        # 執行刪除操作
         for url_to_remove in urls_to_remove_from_book:
             db.session.delete(url_to_remove)
-            # 從書籍的 urls 關聯中移除 (SQLAlchemy 通常會自動處理)
-            # if url_to_remove in book.urls:
-            #      book.urls.remove(url_to_remove)
 
         # 清空舊的書籍 URL (type='book') 關聯後重新添加保留的 URL，確保數據庫同步
         # 過濾掉已經標記為刪除的書籍 URL
-        book.urls = [url_obj for url_obj in book.urls if url_obj.type != 'book' and url_obj not in db.session.deleted] + existing_book_urls_to_keep
+        # Note: SQLAlchemy will automatically remove deleted objects from the relationship upon commit
+        # However, explicitly managing the list can make logic clearer or handle specific cases.
+        # Given the previous logic was trying to manage the list, let's adapt it.
+        # We need to ensure book.urls only contains non-book URLs and the ones we decided to keep.
+        
+        # Get all current URLs associated with the book, excluding those marked for deletion
+        # and those with type != 'book'
+        updated_book_urls_list = [url_obj for url_obj in book.urls if url_obj.type != 'book' and url_obj not in urls_to_remove_from_book] + existing_book_urls_to_keep
+        
+        # Assign the updated list to book.urls relationship. SQLAlchemy handles the diff.
+        book.urls = updated_book_urls_list
+
+        # --- 處理現有書籍 URL 的更新和刪除結束 ---
 
 
         # 新增書籍 URL

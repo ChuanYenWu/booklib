@@ -14,6 +14,14 @@
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="card-title mb-0">{{ category.name }}</h1>
+                <div>
+                    <a href="{{ url_for('category.edit_category', id=category.id) }}" class="btn btn-primary me-2">
+                        <i class="bi bi-pencil"></i> 編輯
+                    </a>
+                     <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                         <i class="bi bi-trash"></i> 刪除
+                     </button>
+                </div>
             </div>
         </div>
     </div>
@@ -63,6 +71,27 @@
                 此分類目前還沒有任何書籍記錄。
             </div>
             {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- 刪除確認對話框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">確認刪除</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                確定要刪除題材「{{ category.name }}」嗎？此操作無法復原。
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form method="POST" action="{{ url_for('category.delete_category', id=category.id) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">確定刪除</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
